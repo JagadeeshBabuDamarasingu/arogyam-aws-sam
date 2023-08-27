@@ -1,0 +1,9 @@
+{
+    "name": "lambda-functions-layer",
+    "version": "1.0.0",
+    "description": "NodeJS lambda layer for invocable functions",
+    "author": "Jagadeesh Babu Damarasingu",
+    "dependencies": {},
+    "scripts": {},
+    "devDependencies": {}
+  }

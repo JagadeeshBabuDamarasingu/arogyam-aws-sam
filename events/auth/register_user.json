@@ -1,0 +1,4 @@
+{
+    "httpMethod": "POST",
+    "body": "{\"namde\":\"Jagadeesh\",\"age\":28,\"pincode\":532001,\"password\":\"7893078003\",\"phone\":\"7893078003\",\"aadhar\":\"226298254992\"}"
+}

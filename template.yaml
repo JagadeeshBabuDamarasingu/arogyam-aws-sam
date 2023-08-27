@@ -1,0 +1,186 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  sam-serverless-api
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Parameters:
+  DbConnUri:
+    Type: String
+    Description: Mongo DB Connection String
+  DbName:
+    Type: String
+    Description: Mongo DB database name
+    Default: "setu_db"
+
+Globals:
+  Function:
+    Layers:
+      - !Ref FunctionLayer
+      - !Ref DependencyLayer
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        DB_CONN_URI: !Ref DbConnUri
+        DB_NAME: !Ref DbName
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+  RunoArogyamApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: RunoLambdaRequestAuthorizer
+        Authorizers:
+          RunoLambdaRequestAuthorizer:
+            FunctionPayloadType: REQUEST
+            FunctionArn: !GetAtt AuthorizeHandlerFunction.Arn
+            Identity:
+              Headers:
+                - Authorization
+
+  DependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: dependency-layer
+      ContentUri: layers/dependencies/
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+
+  FunctionLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: FunctionLayer
+      ContentUri: layers/functions
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  # This is a Lambda function config associated with the source code: get-all-items.js
+
+  AuthorizeHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: API lambda authorizer.
+      Handler: src/auth/authorizer/app.authorizeHandler
+      Runtime: nodejs18.x
+
+  registerUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/auth/
+      Handler: src/auth/register/app.registerUserHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to register a user.
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/auth/register
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  loginUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/auth/
+      Handler: src/auth/login/app.loginUserHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to login a user.
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/auth/login
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  manageSlotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/user/
+      Handler: src/user/manageSlot/app.manageSlotHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to create, update, delete a slot for particular user.
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/user/manageSlot
+            Method: POST,  DELETE
+
+  getAllUserSlotsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/user/
+      Handler: src/user/getAllSlots/app.getAllUserSlotsHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to create, update, delete a slot for particular user.
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/user/getAllSlots
+            Method: GET
+
+  getAllSlotsDetailsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/slots/
+      Handler: src/slots/listAllSlots/app.listAllSlotsHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to list all available slots on a day.
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/slots/getAllSlots/{date}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${RunoArogyamApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

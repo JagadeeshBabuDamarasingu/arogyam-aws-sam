@@ -1,0 +1,6 @@
+{
+    "httpMethod" : "GET",
+    "pathParameters" : {
+        "date" : "20231103"
+    }
+}

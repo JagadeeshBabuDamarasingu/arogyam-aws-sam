@@ -1,0 +1,4 @@
+./env.json
+.vscode
+.aws-sam
+./node_modules

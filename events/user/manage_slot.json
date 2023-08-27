@@ -1,0 +1,7 @@
+{
+    "httpMethod": "DELETE",
+    "body" : "{\"slotId\":\"2023182405\"}",
+    "headers": {
+        "Authorization": "OTUxNTIyMjgwOTpKYWdhZGVlc2hAMTIz"
+    }
+}

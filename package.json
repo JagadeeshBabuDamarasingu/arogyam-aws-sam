@@ -1,0 +1,14 @@
+{
+    "name": "runo-arogyam-lambda-functions",
+    "version": "1.0.0",
+    "description": "Runo arogyam implemented using AWS SAM CLI + Lambda functions + Lambda Layers + MongoDB",
+    "dependencies": {},
+    "devDependencies": {
+      "aws-sdk": "^2.1441.0",
+      "eslint": "^8.47.0"
+    },
+    "scripts": {
+    },
+    "license": "MIT"
+  }
+  
