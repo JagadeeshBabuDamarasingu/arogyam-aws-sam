@@ -19,10 +19,9 @@ function slotIdToSlotDetails(slotId) {
 }
 
 export const manageSlotHandler = async (event) => {
-    console.log(`received ${JSON.stringify(event)}`)
     const authorizationHeader = event?.headers?.Authorization ?? event?.headers?.authorization
     const decodedHeader = Buffer.from(authorizationHeader, "base64").toString()
-    const [phoneNumber] = decodedHeader.split(":")
+    const [phoneNumber] = decodedHeader.replace("Basic ", "").split(":")
     const requestBody = JSON.parse(event.body)
 
     const slotId = requestBody?.slotId

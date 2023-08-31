@@ -5,7 +5,7 @@ export const getAllUserSlotsHandler = async (event) => {
     console.log(`received ${JSON.stringify(event)}`)
     const authorizationHeader = event?.headers?.Authorization ?? event?.headers?.authorization
     const decodedHeader = Buffer.from(authorizationHeader, "base64").toString()
-    const [phoneNumber] = decodedHeader.split(":")
+    const [phoneNumber] = decodedHeader.replace("Basic ", "").split(":")
     const user = await mUserCollection.findOne({ 'phone': phoneNumber });
 
     console.log(`slots are ${user.slots} ; user: ${user}`)
