@@ -1,6 +1,6 @@
 {
     "httpMethod" : "GET",
     "headers": {
-        "Authorization": "OTUxNTIyMjgwOTpKYWdhZGVlc2hAMTIz"
+        "Authorization": "Basic OTUxNTIyMjgwOTpKYWdhZGVlc2hAMTIz"
     }
 }

@@ -1,5 +1,6 @@
 export default {
     None : 0,
-    FirstDoseCompleted : 1,
-    AllCompleted : 2
+    FirstDose : 1,
+    SecondDose : 2,
+    Total : 99
 }

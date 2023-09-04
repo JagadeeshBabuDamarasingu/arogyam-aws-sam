@@ -40,6 +40,7 @@ Resources:
     Properties:
       StageName: Prod
       Auth:
+        # AddDefaultAuthorizerToCorsPreflight: false
         DefaultAuthorizer: RunoLambdaRequestAuthorizer
         Authorizers:
           RunoLambdaRequestAuthorizer:
@@ -48,6 +49,7 @@ Resources:
             Identity:
               Headers:
                 - Authorization
+              ReauthorizeEvery: 0
 
   DependencyLayer:
     Type: AWS::Serverless::LayerVersion
@@ -78,12 +80,13 @@ Resources:
       Description: API lambda authorizer.
       Handler: src/auth/authorizer/app.authorizeHandler
       Runtime: nodejs18.x
+      Timeout: 100
 
   registerUserFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/auth/
-      Handler: src/auth/register/app.registerUserHandler
+      Handler: register/app.registerUserHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
@@ -91,7 +94,7 @@ Resources:
       Timeout: 100
       Description: API to register a user.
       Events:
-        GetRoot:
+        RegisterUserEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RunoArogyamApi
@@ -104,7 +107,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/auth/
-      Handler: src/auth/login/app.loginUserHandler
+      Handler: login/app.loginUserHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
@@ -112,7 +115,7 @@ Resources:
       Timeout: 100
       Description: API to login a user.
       Events:
-        GetRoot:
+        LogUserEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RunoArogyamApi
@@ -125,7 +128,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/user/
-      Handler: src/user/manageSlot/app.manageSlotHandler
+      Handler: manageSlot/app.manageSlotHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
@@ -133,18 +136,24 @@ Resources:
       Timeout: 100
       Description: API to create, update, delete a slot for particular user.
       Events:
-        GetRoot:
+        CancelSlotEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RunoArogyamApi
             Path: /api/v1/user/manageSlot
-            Method: POST,  DELETE
+            Method: DELETE
+        UpsertSlotEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/user/manageSlot
+            Method: POST
 
   getAllUserSlotsFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/user/
-      Handler: src/user/getAllSlots/app.getAllUserSlotsHandler
+      Handler: getAllSlots/app.getAllUserSlotsHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
@@ -152,7 +161,7 @@ Resources:
       Timeout: 100
       Description: API to create, update, delete a slot for particular user.
       Events:
-        GetRoot:
+        GetUserSlotsEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RunoArogyamApi
@@ -163,7 +172,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/slots/
-      Handler: src/slots/listAllSlots/app.listAllSlotsHandler
+      Handler: listAllSlots/app.listAllSlotsHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
@@ -171,7 +180,7 @@ Resources:
       Timeout: 100
       Description: API to list all available slots on a day.
       Events:
-        GetRoot:
+        GetAllSlotsByDateEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RunoArogyamApi
@@ -179,6 +188,44 @@ Resources:
             Method: GET
             Auth:
               Authorizer: NONE
+
+  getAllSlotsForAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/admin/
+      Handler: listSlots/app.adminDataHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to list all filterable admin priviliged data.
+      Events:
+        GetAllSlotsByDateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/admin/listSlots/{date}
+            Method: GET
+
+  getAllUserListForAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/admin/
+      Handler: listUsers/app.adminDataHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to list all filterable admin priviliged data.
+      Events:
+        GetAllUsersByFiltersEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RunoArogyamApi
+            Path: /api/v1/admin/listUsers
+            Method: GET
 
 Outputs:
   WebEndpoint:

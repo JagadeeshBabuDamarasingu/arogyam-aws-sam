@@ -19,7 +19,6 @@ function generateResponse(methodArn, effect) {
 }
 
 export const authorizeHandler = async (event) => {
-    console.log(`received ${JSON.stringify(event)}`)
     const methodArn = event.methodArn
     const authorizationHeader = event?.headers?.Authorization ?? event?.headers?.authorization
     if (!authorizationHeader) {
@@ -27,7 +26,7 @@ export const authorizeHandler = async (event) => {
         return generateResponse(methodArn, "Deny")
     }
 
-    const decodedHeader = Buffer.from(authorizationHeader, "base64").toString()
+    const decodedHeader = Buffer.from(authorizationHeader.replace("Basic ", ""), "base64").toString()
     const [phoneNumber, password] = decodedHeader.split(":")
     if (!phoneNumber || !password) {
         console.log("Authorization Header bad format")
